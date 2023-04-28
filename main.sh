@@ -3,9 +3,13 @@
 source config
 source helpers.sh
 
+mounted_dirs=()
+
 function mount_nfs() {
     prompt_user_input "Enter local directory: "
     local local_dir="$user_input"
+    mounted_dirs+=("$local_dir")
+    echo "${mounted_dirs[@]}"
 
     prompt_user_input "Enter remote directory: "
     local remote_dir="$user_input"
@@ -36,7 +40,7 @@ function mount_nfs() {
     fi
 
     if mount -t nfs "$server_ip":"$remote_dir" "$local_dir"; then
-        echo_green "Mounted $server_ip:$remote_dir to $local_dir"
+        echo_green_newline "Mounted $server_ip:$remote_dir to $local_dir"
     else
         echo_red_newline "Failed to mount $server_ip:$remote_dir to $local_dir"
         echo_yellow_newline "Are you root or sudo?"
@@ -44,50 +48,18 @@ function mount_nfs() {
 }
 
 function unmount_nfs() {
-    prompt_user_input "Enter directory to unmount: "
-    local dir="$user_input"
+    prompt_user_choice "Select directory: " "Select directory to unmount" "${mounted_dirs[@]}" "Cancel"
+    local dir="$user_choice"
 
     if umount "$dir"; then
         echo_green "Unmounted $dir"
     else
-        echo_red "Failed to unmount $dir"
-    fi
-}
-
-function prompt_user_choice {
-    local PS3="$1"
-    local message="$2"
-    local options=("${@:3}") # all arguments after
-    user_choice=""
-
-    echo "$message"
-
-    select user_choice in "${options[@]}"; do
-        if [[ -n "$user_choice" ]]; then
-            break
-        else
-            echo_red "Invalid choice1"
-        fi
-    done
-}
-
-function prompt_user_input {
-    local message="$1"
-    user_input=""
-
-    echo -n "$message"
-    read -r user_input
-}
-
-function check_root() {
-    if [ "$EUID" -ne 0 ]; then
-        echo_red_newline "Please run as root"
-        exit
+        echo_red_newline "Failed to unmount $dir"
     fi
 }
 
 function main() {
-    check_root
+    # check_root
     while true; do
         prompt_user_choice "Select action: " "Select action to perform" "Mount" "Unmount" "Cancel"
 
