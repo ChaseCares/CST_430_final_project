@@ -215,10 +215,7 @@ function create_iso() {
         fi
     fi
 
-    local iso_dest
-    iso_dest="${iso_dir}/ArchLinux-${user_choice}-$(date +%Y.%m.%d)-x86_64"
-
-    if ! mkarchiso -w "/tmp/archiso-tmp" -o "$iso_dest" "$profile_source"; then
+    if ! mkarchiso -w "/tmp/archiso-tmp" -o "$iso_dir" "$profile_source"; then
         echo_red_newline "Failed to create iso"
         return 4
     fi
@@ -268,3 +265,76 @@ function create_profile() {
         sed -i "s/profiles=(/profiles=(\"${profile_name}\" /" config
     fi
 }
+
+function create_mv() {
+    local mv_name
+
+    local isos
+    isos=$(find iso -name "*.iso" -printf "%f ")
+    # shellcheck disable=SC2206
+    isos=($isos)
+
+    local user_choice
+    user_choice=$(prompt_user_choice "Select iso: " false "${isos[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling mv creation"
+        return 3
+    fi
+    echo "${user_choice}"
+
+    local mv_name
+    mv_name=$(prompt_user_input "Enter mv name")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling mv creation"
+        return 3
+    fi
+
+    virt-install \
+        --name sadfsdffds \
+        --memory 1024 \
+        --vcpus=2,maxvcpus=4 \
+        --cpu host \
+        --cdrom "iso/archlinux-2023.04.29-x86_64.iso" \
+        --disk size=2,format=qcow2 \
+        --network user \
+        --virt-type kvm
+}
+
+function menu() {
+    local user_choice
+    actions=("Mount NFS" "Unmount NFS" "Add User" "Create ISO" "Create Profile" "Exit")
+    user_choice=$(prompt_user_choice "Select action: " false "${actions[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling"
+        return 3
+    fi
+
+    case $user_choice in
+    "Mount NFS")
+        mount_nfs
+        ;;
+    "Unmount NFS")
+        unmount_nfs
+        ;;
+    "Add User")
+        add_user
+        ;;
+    "Create ISO")
+        create_iso
+        ;;
+    "Create Profile")
+        create_profile
+        ;;
+    "Exit")
+        exit 0
+        ;;
+    esac
+}
+
+function main() {
+    while true; do
+        menu
+    done
+}
+
+main
