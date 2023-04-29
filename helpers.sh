@@ -32,48 +32,47 @@ function clean_terminal() {
     printf "\033[0;0H"
 }
 
-function prompt_user_choice {
+function prompt_user_choice() {
     # clean_terminal
 
     local PS3="$1"
-    local message="$2"
+    local manual="$2"
     local options=("${@:3}")
+    local REPLY
 
-    echo "$message"
-    user_choice=""
+    if [ "$manual" = true ]; then
+        options+=("Manual input")
+    fi
 
-    select user_choice in "${options[@]}" "Manual input" "Cancel"; do
-        if [[ -n "$user_choice" ]]; then
+    select REPLY in "${options[@]}" "Cancel"; do
+        if [ "$REPLY" == "Manual input" ]; then
+            prompt_user_input "Enter value"
+            return 1
+        elif [ "$REPLY" == "Cancel" ]; then
+            return 3
+        elif [[ -n "$REPLY" ]]; then
+            echo "$REPLY"
             break
         else
             echo_red_newline "Invalid choice"
         fi
     done
-
-    if [ "$user_choice" == "Cancel" ]; then
-        user_choice=""
-        echo "Canceled"
-        return
-    elif [ "$user_choice" == "Manual input" ]; then
-        prompt_user_input "Enter value: "
-    fi
-
 }
 
 function prompt_user_input {
     # clean_terminal
 
     local message="$1"
+    local REPLY
+
     message+=" or 'c' to cancel: "
-    user_input=""
 
-    echo -n "$message"
-    read -r user_input
+    read -p "$message" -r REPLY
 
-    if [ "$user_choice" == "c" ]; then
-        user_choice=""
-        echo "Canceled"
-        return
+    if [ "$REPLY" == "c" ]; then
+        return 3
+    else
+        echo "$REPLY"
     fi
 }
 
