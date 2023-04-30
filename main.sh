@@ -376,6 +376,18 @@ function add_ssh_key() {
 
 }
 
+function add_post_install_script() {
+    local user_choice
+    user_choice=$(prompt_user_choice "Select source profile: " false "${profiles[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling profile creation"
+        return 3
+    else
+        local profile="${profiles_dir}/${user_choice}"
+    fi
+
+}
+
 function set_hostname() {
     local user_choice
     user_choice=$(prompt_user_choice "Select profile: " false "${profiles[@]}")
@@ -421,11 +433,11 @@ function set_hostname() {
     echo_green_newline "Set hostname to '${hostname}'"
 }
 
-function set_language() {
+function set_locale() {
     local user_choice
     user_choice=$(prompt_user_choice "Select profile: " false "${profiles[@]}")
     if [[ $? -eq 3 ]]; then
-        echo_red_newline "Canceling set language"
+        echo_red_newline "Canceling set locale"
         return 3
     fi
 
@@ -437,39 +449,39 @@ function set_language() {
     fi
 
     local userchoice
-    userchoice=$(prompt_user_choice "Select language: " true "Default language: ${default_lang}")
+    userchoice=$(prompt_user_choice "Select locale: " true "Default locale: ${default_locale}")
     local userchoice_rc=$?
 
     if [[ $userchoice_rc -eq 3 ]]; then
-        echo_red_newline "Canceling set language"
+        echo_red_newline "Canceling set locale"
         return 3
     elif [[ $userchoice_rc -eq 1 ]]; then
-        local language="$userchoice"
+        local locale="$userchoice"
     else
-        local language="$default_lang"
+        local locale="$default_locale"
     fi
 
-    local language_file="${profile_source}/airootfs/etc/locale.conf"
+    local locale_file="${profile_source}/airootfs/etc/locale.conf"
 
-    if [ -f "$language_file" ]; then
-        # Replace whatever is in language_file with LANG=language
-        if ! sed -i "s/.*/LANG=${language}/" "$language_file"; then
+    if [ -f "$locale_file" ]; then
+        # Replace whatever is in locale_file with LANG=locale
+        if ! sed -i "s/.*/LANG=${locale}/" "$locale_file"; then
             echo_red_newline "Failed to set hostname"
             return 4
         fi
     else
-        if touch "$language_file"; then
-            if ! echo "$hostname" >"$language_file"; then
-                echo_red_newline "Failed to set language"
+        if touch "$locale_file"; then
+            if ! echo "$hostname" >"$locale_file"; then
+                echo_red_newline "Failed to set locale"
                 return 4
             fi
         else
-            echo_red_newline "Failed to create ${language_file}"
+            echo_red_newline "Failed to create ${locale_file}"
             return 4
         fi
     fi
 
-    echo_green_newline "Set language to '${language}'"
+    echo_green_newline "Set locale to '${locale}'"
 }
 
 function menu() {

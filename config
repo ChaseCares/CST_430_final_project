@@ -14,7 +14,7 @@ default_user_id=1001
 default_group_id=1001
 default_group_name=users
 default_shell=/bin/bash
-default_lang=en_US.UTF-8
+default_locale=en_US.UTF-8
 default_timezone=America/New_York
 
 # Password spec
@@ -31,7 +31,7 @@ profiles_dir=profiles
 profile_baseline="${profiles_dir}/Baseline"
 profile_releng="${profiles_dir}/Releng"
 profiles_out="${profiles_dir}"
-profiles=("chase123" "new_p" "Baseline" "Releng")
+profiles=("Baseline" "Releng")
 
 # ISOs
 iso_dir=iso
