@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-me=chase
+# Created for CST-430 Final Project
+# Date: 2021-04-30
+# Created by ChaseC
 
 #NFS
 servers=("m85" "server2")
