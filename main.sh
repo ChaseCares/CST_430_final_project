@@ -215,7 +215,7 @@ function create_iso() {
         fi
     fi
 
-    if ! mkarchiso -w "/tmp/archiso-tmp" -o "$iso_dir" "$profile_source"; then
+    if ! mkarchiso -v -w "/tmp/archiso-tmp" -o "$iso_dir" "$profile_source"; then
         echo_red_newline "Failed to create iso"
         return 4
     fi
@@ -263,6 +263,20 @@ function create_profile() {
 
     if ! grep -q "$profile_name" config; then
         sed -i "s/profiles=(/profiles=(\"${profile_name}\" /" config
+    fi
+
+    if [[ -d "remote" ]]; then
+        if cp "remote/Welcome.html" "$profiles_dest/airootfs/root/"; then
+            echo_green_newline "Copied Welcome.html to '${profiles_dest}/airootfs/root/'"
+        else
+            echo_red_newline "Failed to copy Welcome.html to '${profiles_dest}/airootfs/root/'"
+            return 4
+        fi
+    fi
+
+    if ! cp "post_install.sh" "$profiles_dest/airootfs/root/"; then
+        echo_red_newline "Failed to copy post_install.sh to '${profiles_dest}/airootfs/root/'"
+        return 4
     fi
 }
 
@@ -373,7 +387,6 @@ function add_ssh_key() {
         echo_red_newline "Failed to add ssh key '${key}'"
         return 4
     fi
-
 }
 
 function add_post_install_script() {
