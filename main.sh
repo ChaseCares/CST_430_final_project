@@ -421,6 +421,57 @@ function set_hostname() {
     echo_green_newline "Set hostname to '${hostname}'"
 }
 
+function set_language() {
+    local user_choice
+    user_choice=$(prompt_user_choice "Select profile: " false "${profiles[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling set language"
+        return 3
+    fi
+
+    if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
+        profile_source="${profiles_dir}/${user_choice}"
+    else
+        echo_red_newline "No profile found"
+        return 4
+    fi
+
+    local userchoice
+    userchoice=$(prompt_user_choice "Select language: " true "Default language: ${default_lang}")
+    local userchoice_rc=$?
+
+    if [[ $userchoice_rc -eq 3 ]]; then
+        echo_red_newline "Canceling set language"
+        return 3
+    elif [[ $userchoice_rc -eq 1 ]]; then
+        local language="$userchoice"
+    else
+        local language="$default_lang"
+    fi
+
+    local language_file="${profile_source}/airootfs/etc/locale.conf"
+
+    if [ -f "$language_file" ]; then
+        # Replace whatever is in language_file with LANG=language
+        if ! sed -i "s/.*/LANG=${language}/" "$language_file"; then
+            echo_red_newline "Failed to set hostname"
+            return 4
+        fi
+    else
+        if touch "$language_file"; then
+            if ! echo "$hostname" >"$language_file"; then
+                echo_red_newline "Failed to set language"
+                return 4
+            fi
+        else
+            echo_red_newline "Failed to create ${language_file}"
+            return 4
+        fi
+    fi
+
+    echo_green_newline "Set language to '${language}'"
+}
+
 function menu() {
     local user_choice
     actions=("Mount NFS" "Unmount NFS" "Add User" "Create ISO" "Create Profile" "Set Hostname" "Create VM" "Create SSH Keys" "Add SSH Key" "Exit")
@@ -470,4 +521,6 @@ function main() {
     done
 }
 
-main
+# main
+
+set_language

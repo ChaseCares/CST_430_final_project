@@ -16,6 +16,7 @@ default_user_id=1001
 default_group_id=1001
 default_group_name=users
 default_shell=/bin/bash
+default_lang=en_US.UTF-8
 
 # Password spec
 days_since_Jan_1=$(($(date +%s) / 86400))
