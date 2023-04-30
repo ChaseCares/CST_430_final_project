@@ -31,8 +31,12 @@ profiles_dir=profiles
 profile_baseline="${profiles_dir}/Baseline"
 profile_releng="${profiles_dir}/Releng"
 profiles_out="${profiles_dir}"
-profiles=("testing_re" "testing" "Baseline" "Releng")
+profiles=("chase123" "new_p" "Baseline" "Releng")
 
 # ISOs
 iso_dir=iso
 # iso_out="${iso_dir}/output"
+
+# SSH
+ssh_dir=remote/.ssh
+ssh_type=ed25519

@@ -48,7 +48,7 @@ function mount_nfs() {
     fi
 
     if [ ! -d "$local_dir" ]; then
-        mkdir "$local_dir"
+        mkdir --parents "$local_dir"
     fi
 
     if mount -t nfs "$server_ip":"$remote_dir" "$local_dir"; then
@@ -220,7 +220,7 @@ function create_iso() {
         return 4
     fi
 
-    echo_green_newline "Created iso '${iso_dest}'"
+    echo_green_newline "Created iso '${iso_dir}'"
 }
 
 function create_profile() {
@@ -289,20 +289,141 @@ function create_mv() {
         return 3
     fi
 
-    virt-install \
-        --name sadfsdffds \
-        --memory 1024 \
-        --vcpus=2,maxvcpus=4 \
-        --cpu host \
-        --cdrom "iso/archlinux-2023.04.29-x86_64.iso" \
-        --disk size=2,format=qcow2 \
-        --network user \
-        --virt-type kvm
+    echo -e "\nvirt-install \\
+        --name ${mv_name} \\
+        --memory 1024 \\
+        --vcpus=2,maxvcpus=4 \\
+        --cpu host \\
+        --cdrom iso/${user_choice} \\
+        --disk size=2,format=qcow2 \\
+        --network user \\
+        --virt-type kvm\n"
+}
+
+function create_ssh_keys() {
+    if [ ! -d "$ssh_dir" ]; then
+        mkdir --parents "$ssh_dir"
+    fi
+
+    local user_input
+    user_input=$(prompt_user_input "Enter ssh key comments")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling ssh key creation"
+        return 3
+    else
+        local email="$user_input"
+    fi
+
+    user_input=$(prompt_user_input "Enter ssh name")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling ssh key creation"
+        return 3
+    else
+        local ssh_name="$user_input"
+    fi
+
+    if [[ ! $(ssh-keygen -t $ssh_type -C "$email" -N "" -f "$ssh_dir/$ssh_name.$ssh_type") ]]; then
+        echo_red_newline "Failed to create ssh key"
+        return 4
+    else
+        echo_green_newline "Created ssh key '${ssh_name}'"
+    fi
+}
+
+function add_ssh_key() {
+    local user_choice
+    user_choice=$(prompt_user_choice "Select source profile: " false "${profiles[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling profile creation"
+        return 3
+    else
+        local profile="${profiles_dir}/${user_choice}"
+    fi
+
+    local ssh_keys
+    ssh_keys=$(find "$ssh_dir" -name "*.$ssh_type" -printf "%f ")
+    # shellcheck disable=SC2206
+    ssh_keys=($ssh_keys)
+
+    local key_comment
+    for key in "${ssh_keys[@]}"; do
+        key_comment+=("$(ssh-keygen -l -f "$ssh_dir/$key" | awk '{print $3} ')")
+    done
+
+    for i in "${!ssh_keys[@]}"; do
+        ssh_keys[i]="${ssh_keys[i]} (Comment: ${key_comment[i]})"
+    done
+
+    user_choice=$(prompt_user_choice "Select key: " false "${ssh_keys[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling mv creation"
+        return 3
+    else
+        local key
+        key=$(echo "$user_choice" | awk '{print $1}')
+    fi
+
+    if [[ ! -d "$profile/airootfs/root/.ssh/" ]]; then
+        mkdir --parents "$profile/airootfs/root/.ssh/"
+    fi
+
+    if cp -r "$ssh_dir/$key" "$profile/airootfs/root/.ssh/"; then
+        echo_green_newline "Added ssh key '${key}'"
+    else
+        echo_red_newline "Failed to add ssh key '${key}'"
+        return 4
+    fi
+
+}
+
+function set_hostname() {
+    local user_choice
+    user_choice=$(prompt_user_choice "Select profile: " false "${profiles[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling set hostname"
+        return 3
+    fi
+
+    if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
+        profile_source="${profiles_dir}/${user_choice}"
+    else
+        echo_red_newline "No profile found"
+        return 4
+    fi
+
+    local hostname
+    hostname=$(prompt_user_input "Enter hostname")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling set hostname"
+        return 3
+    fi
+
+    local hostname_file="${profile_source}/airootfs/etc/hostname"
+
+    if [ -f "$hostname_file" ]; then
+        # Replace whatever is in hostname_file with hostname
+        if ! sed -i "s/.*/${hostname}/" "$hostname_file"; then
+            echo_red_newline "Failed to set hostname"
+            return 4
+        fi
+    else
+        if touch "$hostname_file"; then
+            if ! echo "$hostname" >"$hostname_file"; then
+                echo_red_newline "Failed to set hostname"
+                return 4
+            fi
+        else
+            echo_red_newline "Failed to create ${hostname_file}"
+            return 4
+        fi
+    fi
+
+    echo_green_newline "Set hostname to '${hostname}'"
 }
 
 function menu() {
     local user_choice
-    actions=("Mount NFS" "Unmount NFS" "Add User" "Create ISO" "Create Profile" "Exit")
+    actions=("Mount NFS" "Unmount NFS" "Add User" "Create ISO" "Create Profile" "Set Hostname" "Create VM" "Create SSH Keys" "Add SSH Key" "Exit")
     user_choice=$(prompt_user_choice "Select action: " false "${actions[@]}")
     if [[ $? -eq 3 ]]; then
         echo_red_newline "Canceling"
@@ -324,6 +445,18 @@ function menu() {
         ;;
     "Create Profile")
         create_profile
+        ;;
+    "Set Hostname")
+        set_hostname
+        ;;
+    "Create VM")
+        create_mv
+        ;;
+    "Create SSH Keys")
+        create_ssh_keys
+        ;;
+    "Add SSH Key")
+        add_ssh_key
         ;;
     "Exit")
         exit 0
