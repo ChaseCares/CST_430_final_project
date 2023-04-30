@@ -421,6 +421,63 @@ function set_hostname() {
     echo_green_newline "Set hostname to '${hostname}'"
 }
 
+function set_timezone() {
+    local user_choice
+    user_choice=$(prompt_user_choice "Select profile: " false "${profiles[@]}")
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling set language"
+        return 3
+    fi
+
+    if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
+        profile_source="${profiles_dir}/${user_choice}"
+    else
+        echo_red_newline "No profile found"
+        return 4
+    fi
+
+    local userchoice
+    userchoice=$(prompt_user_choice "Select language: " true "${default_timezone}")
+
+    if [[ $? -eq 3 ]]; then
+        echo_red_newline "Canceling set language"
+        return 3
+    else
+        local timezone="$userchoice"
+    fi
+
+    local etc_timezone_file="${profile_source}/airootfs/etc/localtime"
+    local usr_timezone_dir="${profile_source}/airootfs/usr/share/zoneinfo/"
+    local usr_timezone_file="${profile_source}/airootfs/usr/share/zoneinfo/${timezone}"
+    local remote_timezone_file="remote/zoneinfo/${timezone}"
+
+    if [[ ! -d "$usr_timezone_dir" ]]; then
+        if ! mkdir --parents "$usr_timezone_dir"; then
+            echo_red_newline "Failed to create ${usr_timezone_dir}"
+            return 4
+        fi
+    fi
+
+    if [[ -f "$remote_timezone_file" ]]; then
+        if cp "$remote_timezone_file" "$usr_timezone_file"; then
+            echo_green_newline "Copied remote timezone file"
+        else
+            echo_red_newline "Failed to copy remote timezone file"
+            return 4
+        fi
+    else
+        echo_red_newline "No remote timezone file found"
+        return 4
+    fi
+
+    if ! ln --symbolic --force "$usr_timezone_file" "$etc_timezone_file"; then
+        echo_red_newline "Failed to link timezone file"
+        return 4
+    else
+        echo_green_newline "Linked timezone file"
+    fi
+}
+
 function set_language() {
     local user_choice
     user_choice=$(prompt_user_choice "Select profile: " false "${profiles[@]}")
@@ -521,6 +578,4 @@ function main() {
     done
 }
 
-# main
-
-set_language
+main
