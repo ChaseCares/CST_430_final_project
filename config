@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034
+
+# Created for CST 430 Final Project
+# Date: 2023-04-30
+# Created by ChaseC
+
+#NFS
+servers=("m85" "server2")
+m85_ip=10.13.13.11
+server2_ip=0.0.0.0
+mounted_dirs=()
+
+# User spec
+default_user_id=1001
+default_group_id=1001
+default_group_name=users
+default_shell=/bin/bash
+default_locale=en_US.UTF-8
+default_timezone=America/New_York
+
+# Password spec
+days_since_Jan_1=$(($(date +%s) / 86400))
+min_pw_age=1
+max_pw_age=90
+pw_warning_period=14
+pw_inactivity_period=7
+# 365 days from now
+account_expi_date=$(($(date +%s) / 86400 + 365))
+
+# Profiles
+profiles_dir=profiles
+profile_baseline="${profiles_dir}/Baseline"
+profile_releng="${profiles_dir}/Releng"
+profiles_out="${profiles_dir}"
+profiles=("Baseline" "Releng")
+
+# ISOs
+iso_dir=iso
+
+# SSH
+ssh_dir=remote/.ssh
+ssh_type=ed25519
