@@ -549,7 +549,7 @@ function set_locale() {
     # If the locale file exists, but is empty, add LANG=$locale to it
     else
         if touch "$locale_file"; then
-            if ! echo "$hostname" >"$locale_file"; then
+            if ! echo "LANG=${locale}" >"$locale_file"; then
                 echo_red_newline "Failed to set locale"
                 return 4
             fi
