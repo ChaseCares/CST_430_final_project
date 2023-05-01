@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Created for CST-430 Final Project
-# Date: 2021-04-30
+# Created for CST 430 Final Project
+# Date: 2023-04-30
 # Created by ChaseC
 
 # The following functions will echo whatever is passed to them in the specified color
