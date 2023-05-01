@@ -41,11 +41,13 @@ function mount_nfs() {
     if [[ prompt_rc -eq 3 ]]; then
         echo_red_newline "Canceling unmount"
         return 3
+    elif [[ prompt_rc -eq 1 ]]; then
+        local server_ip="${user_choice}"
+    else
+        # If the user chose one of the available options, save the ip to a new local variable
+        local server="${user_choice}_ip"
+        local server_ip="${!server}"
     fi
-
-    # If the user chose one of the available options, save the ip to a new local variable
-    local server="${user_choice}_ip"
-    local server_ip="${!server}"
 
     # Check to make sure that the ip is valid
     if [[ ! "$server_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
