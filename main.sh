@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# Created for CST-430 Final Project
-# Date: 2021-04-30
+# Created for CST 430 Final Project
+# Date: 2023-04-30
 # Created by ChaseC
 
 # Importing helper functions and config file
 source config
 source helpers.sh
 
-# This function will mtount an nfs share to a local directory
+# This function will mount an nfs share to a local directory
 function mount_nfs() {
     # Prompt user for the local directory mount point
     local user_input
@@ -126,7 +126,7 @@ function edit_file() {
     fi
 }
 
-# This function will create the requisite files needed to create a new user and they're permissions
+# This function will create the requisite files needed to create a new user and their permissions
 function add_user() {
     # Prompt the user to select the profile to use
     local user_choice
@@ -136,7 +136,7 @@ function add_user() {
         return 3
     fi
 
-    # Make sure that the users choice is in the available profiles array
+    # Make sure that the user's choice is in the available profile's array
     if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
         profile_dir="${profiles_dir}/${user_choice}"
     else
@@ -241,7 +241,7 @@ function create_iso() {
         return 3
     fi
 
-    # Make sure that the users choice is in the available profiles array
+    # Make sure that the user's choice is in the available profile's array
     if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
         # If the user chose one of the available options, save the profile to a local variable
         profile_source="${profiles_dir}/${user_choice}"
@@ -278,7 +278,7 @@ function create_profile() {
         return 3
     fi
 
-    # Make sure that the users choice is in the available profiles array
+    # Make sure that the user's choice is in the available profile's array
     if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
         profile_source="${profiles_dir}/${user_choice}"
     else
@@ -294,7 +294,7 @@ function create_profile() {
         return 3
     fi
 
-    # Check to make sure that the profiles directory exists, if not create it
+    # Check to make sure that the profile's directory exists, if not create it
     local profiles_dest="$profiles_out/$profile_name"
     if [ ! -d "$profiles_dest" ]; then
         if ! mkdir --parents "$profiles_dest"; then
@@ -303,7 +303,7 @@ function create_profile() {
         fi
     fi
 
-    # Copy the profile to the profiles directory, and provide feedback to the user
+    # Copy the profile to the profile's directory, and provide feedback to the user
     if cp --recursive --preserve "$profile_source/." "$profiles_dest/"; then
         echo_green_newline "Created profile '${profile_name}'"
     else
@@ -328,7 +328,7 @@ function create_profile() {
 }
 
 # This function will create a command for a user to create a vm from an iso
-function create_mv() {
+function create_vm() {
     # Find all available isos and save them to a local variable
     local isos
     isos=$(find iso -name "*.iso" -printf "%f ")
@@ -339,21 +339,21 @@ function create_mv() {
     local user_choice
     user_choice=$(prompt_user_choice "Select iso: " false "${isos[@]}")
     if [[ $? -eq 3 ]]; then
-        echo_red_newline "Canceling mv creation"
+        echo_red_newline "Canceling vm creation"
         return 3
     fi
 
-    # Prompt the user for the mv name, and save it to a local variable
-    local mv_name
-    mv_name=$(prompt_user_input "Enter mv name")
+    # Prompt the user for the vm name, and save it to a local variable
+    local vm_name
+    vm_name=$(prompt_user_input "Enter vm name")
     if [[ $? -eq 3 ]]; then
-        echo_red_newline "Canceling mv creation"
+        echo_red_newline "Canceling vm creation"
         return 3
     fi
 
     # Create the command for the user to run to create the vm
     echo -e "\nvirt-install \\
-        --name ${mv_name} \\
+        --name ${vm_name} \\
         --memory 1024 \\
         --vcpus=2,maxvcpus=4 \\
         --cpu host \\
@@ -380,7 +380,7 @@ function create_ssh_keys() {
         local ssh_name="$user_input"
     fi
 
-    # Prompt the user for ssh key comments, and save it to a local variable
+    # Prompt the user for ssh key comments, and save them to a local variable
     user_input=$(prompt_user_input "Enter ssh key comments")
     if [[ $? -eq 3 ]]; then
         echo_red_newline "Canceling ssh key creation"
@@ -422,7 +422,7 @@ function add_ssh_key() {
         key_comment+=("$(ssh-keygen -l -f "$ssh_dir/$key" | awk '{print $3} ')")
     done
 
-    # Add the comment to the ssh key name, for it easier selection
+    # Add the comment to the ssh key name, for easier selection
     for i in "${!ssh_keys[@]}"; do
         ssh_keys[i]="${ssh_keys[i]} (Comment: ${key_comment[i]})"
     done
@@ -430,7 +430,7 @@ function add_ssh_key() {
     # Prompt the user to select the ssh key to add to the profile, and save it to a local variable
     user_choice=$(prompt_user_choice "Select key: " false "${ssh_keys[@]}")
     if [[ $? -eq 3 ]]; then
-        echo_red_newline "Canceling mv creation"
+        echo_red_newline "Canceling vm creation"
         return 3
     else
         local key
@@ -461,7 +461,7 @@ function set_hostname() {
         return 3
     fi
 
-    # Make sure that the users choice is in the available profiles array
+    # Make sure that the user's choice is in the available profile's array
     if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
         profile_source="${profiles_dir}/${user_choice}"
     else
@@ -512,7 +512,7 @@ function set_locale() {
         echo_red_newline "Canceling set locale"
         return 3
     fi
-    # Make sure that the users choice is in the available profiles array
+    # Make sure that the user's choice is in the available profile's array
     if [[ " ${profiles[*]} " =~ ${user_choice} ]]; then
         profile_source="${profiles_dir}/${user_choice}"
     else
@@ -520,7 +520,7 @@ function set_locale() {
         return 4
     fi
 
-    # Print the user to enter the locale and provide the default as an option, and save it to a local variable
+    # Prompt the user to enter the locale and provide the default as an option, and save it to a local variable
     user_choice=$(prompt_user_choice "Select locale: " true "Default locale: ${default_locale}")
     # Save the return code as it's used more than once
     local prompt_rc=$?
@@ -576,7 +576,7 @@ function menu() {
         exit
     fi
 
-    # Run the function that corresponds to the users choice
+    # Run the function that corresponds to the user's choice
     case $user_choice in
     "Mount NFS")
         mount_nfs
@@ -597,7 +597,7 @@ function menu() {
         set_hostname
         ;;
     "Create VM")
-        create_mv
+        create_vm
         ;;
     "Create SSH Keys")
         create_ssh_keys
@@ -611,7 +611,7 @@ function menu() {
     esac
 }
 
-# This function is the main function that Runs the menu in a loop so the user can run multiple actions
+# This function is the main function that runs the menu in a loop so the user can run multiple actions
 function main() {
     # Verify that the user is running as root, if not exit
     check_root
