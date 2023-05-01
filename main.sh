@@ -95,7 +95,7 @@ function unmount_nfs() {
 
     # Unmount the selected directory, and provide feedback to the user
     if umount "$user_choice"; then
-        echo_green "Unmounted $user_choice"
+        echo_green_newline "Unmounted $user_choice"
     else
         echo_red_newline "Failed to unmount $user_choice"
     fi
@@ -567,7 +567,7 @@ function set_locale() {
 function menu() {
     local user_choice
     # Define the actions that the user can select from
-    actions=("Mount NFS" "Unmount NFS" "Add User" "Create ISO" "Create Profile" "Set Hostname" "Create VM" "Create SSH Keys" "Add SSH Key" "Exit")
+    actions=("Mount NFS" "Unmount NFS" "Add User" "Create ISO" "Create Profile" "Set Hostname" "Set Locale" "Create VM" "Create SSH Keys" "Add SSH Key" "Exit")
     # Prompt the user to select an action, and save it to a local variable
     user_choice=$(prompt_user_choice "Select action: " false "${actions[@]}")
     # If the return code is 3, the user canceled, so exit
@@ -595,6 +595,9 @@ function menu() {
         ;;
     "Set Hostname")
         set_hostname
+        ;;
+    "Set Locale")
+        set_locale
         ;;
     "Create VM")
         create_vm
