@@ -37,7 +37,6 @@ profiles=("Baseline" "Releng")
 
 # ISOs
 iso_dir=iso
-# iso_out="${iso_dir}/output"
 
 # SSH
 ssh_dir=remote/.ssh
