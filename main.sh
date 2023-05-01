@@ -38,26 +38,14 @@ function mount_nfs() {
     # Save the return code to a local variable, as it's accessed multiple times
     local prompt_rc=$?
     # Return codes: 3 is cancel, 1 is manual input, 0 is success (Meaning the user chose one of the available options provided)
-    if [[ $prompt_rc -eq 1 ]]; then
-        # If the user opted to enter a manual ip, prompt for it
-        user_input=$(prompt_user_input "Enter server ip")
-        # Check to make sure that the user did not cancel during the step
-        if [[ $? -eq 3 ]]; then
-            echo_red_newline "Canceling mount"
-            return 3
-        else
-            # If the user did not cancel, save the input to a new local variable
-            local server_ip="$user_input"
-        fi
-    # If the user canceled, propagate the return code
-    elif [[ prompt_rc -eq 3 ]]; then
+    if [[ prompt_rc -eq 3 ]]; then
         echo_red_newline "Canceling unmount"
         return 3
-    else
-        # If the user chose one of the available options, save the ip to a new local variable
-        local server="${user_choice}_ip"
-        local server_ip="${!server}"
     fi
+
+    # If the user chose one of the available options, save the ip to a new local variable
+    local server="${user_choice}_ip"
+    local server_ip="${!server}"
 
     # Check to make sure that the ip is valid
     if [[ ! "$server_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
